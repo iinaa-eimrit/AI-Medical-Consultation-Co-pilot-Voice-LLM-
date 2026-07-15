@@ -1,79 +1,137 @@
-import type { ReactNode } from 'react';
 import { useConsultationStore } from '../store/useConsultationStore';
-import { Stethoscope, Pill, CalendarClock, ListChecks, FileText } from 'lucide-react';
+import { Stethoscope, Pill, CalendarClock, ListChecks, FileText, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 export default function InsightsPanel() {
   const insights = useConsultationStore((s) => s.insights);
+  const isAnalyzing = useConsultationStore((s) => s.isAnalyzing);
+
+  if (isAnalyzing) {
+    return (
+      <aside className="h-full bg-white rounded-xl border border-gray-200 shadow-sm p-4 overflow-hidden">
+        <div className="animate-pulse space-y-6">
+          <div className="h-6 bg-slate-200 rounded w-1/2"></div>
+          <div className="space-y-3">
+            <div className="h-4 bg-slate-100 rounded w-full"></div>
+            <div className="h-4 bg-slate-100 rounded w-5/6"></div>
+            <div className="h-4 bg-slate-100 rounded w-4/6"></div>
+          </div>
+          <div className="space-y-3">
+            <div className="h-4 bg-slate-100 rounded w-full"></div>
+            <div className="h-20 bg-slate-100 rounded w-full"></div>
+          </div>
+          <div className="space-y-3">
+            <div className="h-4 bg-slate-100 rounded w-full"></div>
+            <div className="h-10 bg-slate-100 rounded w-full"></div>
+          </div>
+        </div>
+      </aside>
+    );
+  }
 
   if (!insights) {
     return (
-      <aside className="w-96 bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex flex-col items-center justify-center text-center text-gray-400">
-        <Stethoscope className="w-12 h-12 mb-3" />
-        <p className="text-sm">Extracted insights will appear here after analysis.</p>
+      <aside className="h-full bg-slate-50 rounded-xl border border-dashed border-slate-300 p-4 flex flex-col items-center justify-center text-center text-slate-400">
+        <Stethoscope className="w-12 h-12 mb-3 text-slate-300" />
+        <h3 className="font-medium text-slateNavy mb-1">No Data Extracted</h3>
+        <p className="text-sm">Click "Extract Clinical Insights" to generate structured data.</p>
       </aside>
     );
   }
 
   return (
-    <aside className="w-96 bg-white rounded-xl border border-gray-200 shadow-sm p-4 overflow-y-auto">
-      <h2 className="font-medium mb-4">Consultation Insights</h2>
-      <div className="space-y-4">
-        <InsightCard
-          icon={<Stethoscope className="w-5 h-5 text-blue-500" />}
-          title="Symptoms"
-          items={insights.symptoms}
-        />
-        <InsightCard
-          icon={<Pill className="w-5 h-5 text-green-500" />}
-          title="Medications"
-          items={insights.medications}
-        />
-        <InsightCard
-          icon={<CalendarClock className="w-5 h-5 text-purple-500" />}
-          title="Follow-up Date"
-          items={insights.followUpDate ? [insights.followUpDate] : []}
-        />
-        <InsightCard
-          icon={<ListChecks className="w-5 h-5 text-orange-500" />}
-          title="Action Items"
-          items={insights.actionItems}
-        />
-        <div className="p-3 bg-gray-50 rounded-lg">
-          <div className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
-            <FileText className="w-4 h-4" />
-            Summary
+    <aside className="h-full bg-white rounded-xl border border-gray-200 shadow-sm overflow-y-auto">
+      <div className="p-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+        <h2 className="font-semibold text-slateNavy">Clinical Insights</h2>
+        <div className="group relative flex items-center gap-1 bg-teal-50 text-deepTeal px-2 py-1 rounded-md text-xs font-bold cursor-help">
+          <CheckCircle2 className="w-3 h-3" />
+          {insights.confidenceScore}% Conf
+          <div className="absolute right-0 top-full mt-1 w-48 p-2 bg-slateNavy text-white text-[10px] rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 shadow-lg">
+            AI Confidence Level based on context clarity and clinical terminology mapping.
           </div>
-          <p className="text-sm text-gray-600">{insights.summary}</p>
         </div>
       </div>
-    </aside>
-  );
-}
 
-function InsightCard({
-  icon,
-  title,
-  items,
-}: {
-  icon: ReactNode;
-  title: string;
-  items: string[];
-}) {
-  return (
-    <div>
-      <div className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-        {icon}
-        {title}
+      <div className="p-4 space-y-6">
+        {insights.adverseEvents && insights.adverseEvents.length > 0 && (
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="flex items-center gap-2 text-sm font-bold text-amber-800 mb-2">
+              <AlertTriangle className="w-4 h-4" />
+              Adverse Events Detected
+            </div>
+            <ul className="list-disc list-inside text-sm text-amber-900 space-y-1">
+              {insights.adverseEvents.map((ae, idx) => (
+                <li key={idx}>{ae}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div>
+          <div className="flex items-center gap-2 text-sm font-semibold text-slateNavy mb-3">
+            <Pill className="w-4 h-4 text-deepTeal" />
+            Extracted Entities
+          </div>
+          {insights.entities && insights.entities.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {insights.entities.map((entity, idx) => (
+                <div key={idx} className="flex flex-col border border-slate-200 rounded-md px-2 py-1 bg-slate-50">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{entity.type}</span>
+                  <span className="text-sm font-medium text-slateNavy">{entity.name}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-slate-400 italic">No clinical entities found.</p>
+          )}
+        </div>
+
+        <div>
+          <div className="flex items-center gap-2 text-sm font-semibold text-slateNavy mb-3">
+            <ListChecks className="w-4 h-4 text-mutedIndigo" />
+            Action Items
+          </div>
+          {insights.actionItems && insights.actionItems.length > 0 ? (
+            <ul className="space-y-2">
+              {insights.actionItems.map((action, idx) => (
+                <li key={idx} className="flex items-start gap-3 p-3 rounded-lg border border-slate-100 bg-white shadow-sm">
+                  <input type="checkbox" className="mt-1 rounded text-deepTeal focus:ring-deepTeal border-slate-300" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-slateNavy">{action.task}</p>
+                    <div className="flex items-center gap-3 mt-1">
+                      <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                        Assignee: {action.assignee}
+                      </span>
+                      {action.dueDate && (
+                        <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                          <CalendarClock className="w-3 h-3" />
+                          {action.dueDate}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-slate-400 italic">No action items.</p>
+          )}
+        </div>
+
+        <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+          <div className="flex items-center gap-2 text-sm font-semibold text-slateNavy mb-2">
+            <FileText className="w-4 h-4 text-slate-500" />
+            Clinical Summary
+          </div>
+          <p className="text-sm text-slate-600 leading-relaxed">{insights.summary}</p>
+        </div>
+
+        {insights.followUpDate && (
+          <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">
+            <CalendarClock className="w-4 h-4 text-slate-400" />
+            <span className="font-semibold text-slateNavy">Follow-up:</span> {insights.followUpDate}
+          </div>
+        )}
       </div>
-      {items.length > 0 ? (
-        <ul className="space-y-1">
-          {items.map((item, idx) => (
-            <li key={idx} className="text-sm text-gray-600 pl-7">{item}</li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-sm text-gray-400 pl-7">None noted</p>
-      )}
-    </div>
+    </aside>
   );
 }

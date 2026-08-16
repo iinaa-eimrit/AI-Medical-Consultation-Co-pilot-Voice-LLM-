@@ -1,9 +1,24 @@
 import { useConsultationStore } from '../store/useConsultationStore';
 import { Stethoscope, Pill, CalendarClock, ListChecks, FileText, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { useTypewriter } from '../hooks/useTypewriter';
+import { useState } from 'react';
 
 export default function InsightsPanel() {
   const insights = useConsultationStore((s) => s.insights);
   const isAnalyzing = useConsultationStore((s) => s.isAnalyzing);
+  const { displayedText: summaryText, isTyping } = useTypewriter(insights?.summary || null, 15);
+  
+  const [checkedItems, setCheckedItems] = useState<Set<number>>(new Set());
+
+  const toggleCheck = (idx: number) => {
+    const newSet = new Set(checkedItems);
+    if (newSet.has(idx)) {
+      newSet.delete(idx);
+    } else {
+      newSet.add(idx);
+    }
+    setCheckedItems(newSet);
+  };
 
   if (isAnalyzing) {
     return (
@@ -30,17 +45,22 @@ export default function InsightsPanel() {
 
   if (!insights) {
     return (
-      <aside className="h-full bg-slate-50 rounded-xl border border-dashed border-slate-300 p-4 flex flex-col items-center justify-center text-center text-slate-400">
-        <Stethoscope className="w-12 h-12 mb-3 text-slate-300" />
-        <h3 className="font-medium text-slateNavy mb-1">No Data Extracted</h3>
-        <p className="text-sm">Click "Extract Clinical Insights" to generate structured data.</p>
+      <aside className="h-full bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col overflow-hidden">
+        <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-white z-10 shrink-0">
+          <h2 className="font-semibold text-slateNavy">Clinical Insights</h2>
+        </div>
+        <div className="flex-1 bg-slate-50 border-t border-dashed border-slate-200 p-4 flex flex-col items-center justify-center text-center text-slate-400">
+          <Stethoscope className="w-12 h-12 mb-3 text-slate-300" />
+          <h3 className="font-medium text-slateNavy mb-1">No Data Extracted</h3>
+          <p className="text-sm">Click "Extract Clinical Insights" to generate structured data.</p>
+        </div>
       </aside>
     );
   }
 
   return (
-    <aside className="h-full bg-white rounded-xl border border-gray-200 shadow-sm overflow-y-auto">
-      <div className="p-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+    <aside className="h-full bg-white rounded-xl border border-gray-200 shadow-sm overflow-y-auto scrollbar-hide">
+      <div className="p-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10 shrink-0">
         <h2 className="font-semibold text-slateNavy">Clinical Insights</h2>
         <div className="group relative flex items-center gap-1 bg-teal-50 text-deepTeal px-2 py-1 rounded-md text-xs font-bold cursor-help">
           <CheckCircle2 className="w-3 h-3" />
@@ -92,25 +112,35 @@ export default function InsightsPanel() {
           </div>
           {insights.actionItems && insights.actionItems.length > 0 ? (
             <ul className="space-y-2">
-              {insights.actionItems.map((action, idx) => (
-                <li key={idx} className="flex items-start gap-3 p-3 rounded-lg border border-slate-100 bg-white shadow-sm">
-                  <input type="checkbox" className="mt-1 rounded text-deepTeal focus:ring-deepTeal border-slate-300" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-slateNavy">{action.task}</p>
-                    <div className="flex items-center gap-3 mt-1">
-                      <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
-                        Assignee: {action.assignee}
-                      </span>
-                      {action.dueDate && (
-                        <span className="text-[10px] text-slate-500 flex items-center gap-1">
-                          <CalendarClock className="w-3 h-3" />
-                          {action.dueDate}
+              {insights.actionItems.map((action, idx) => {
+                const isChecked = checkedItems.has(idx);
+                return (
+                  <li key={idx} className={`flex items-start gap-3 p-3 rounded-lg border border-slate-100 bg-white shadow-sm transition-all ${isChecked ? 'opacity-60' : ''}`}>
+                    <input 
+                      type="checkbox" 
+                      className="mt-1 rounded text-deepTeal focus:ring-deepTeal border-slate-300 cursor-pointer" 
+                      checked={isChecked}
+                      onChange={() => toggleCheck(idx)}
+                    />
+                    <div className="flex-1">
+                      <p className={`text-sm font-medium transition-all ${isChecked ? 'text-slate-400 line-through' : 'text-slateNavy'}`}>
+                        {action.task}
+                      </p>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${isChecked ? 'bg-slate-50 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
+                          Assignee: {action.assignee}
                         </span>
-                      )}
+                        {action.dueDate && (
+                          <span className={`text-[10px] flex items-center gap-1 ${isChecked ? 'text-slate-400' : 'text-slate-500'}`}>
+                            <CalendarClock className="w-3 h-3" />
+                            {action.dueDate}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <p className="text-sm text-slate-400 italic">No action items.</p>
@@ -122,7 +152,10 @@ export default function InsightsPanel() {
             <FileText className="w-4 h-4 text-slate-500" />
             Clinical Summary
           </div>
-          <p className="text-sm text-slate-600 leading-relaxed">{insights.summary}</p>
+          <p className="text-sm text-slate-600 leading-relaxed min-h-[4rem]">
+            {summaryText}
+            {isTyping && <span className="ml-0.5 inline-block w-1.5 h-4 bg-slate-400 animate-pulse align-middle"></span>}
+          </p>
         </div>
 
         {insights.followUpDate && (

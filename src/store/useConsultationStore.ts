@@ -3,6 +3,7 @@ import type { TranscriptUtterance, ClinicalInsights } from '../types/clinical';
 
 interface ConsultationState {
   activeTab: string;
+  isMobileMenuOpen: boolean;
   utterances: TranscriptUtterance[];
   interimTranscript: string;
   isRecording: boolean;
@@ -18,6 +19,7 @@ interface ConsultationState {
   setIsAnalyzing: (value: boolean) => void;
   setError: (error: string | null) => void;
   setActiveTab: (tab: string) => void;
+  setIsMobileMenuOpen: (isOpen: boolean) => void;
   reset: () => void;
 }
 
@@ -45,6 +47,7 @@ const mockInitialUtterances: TranscriptUtterance[] = [
 
 export const useConsultationStore = create<ConsultationState>((set) => ({
   activeTab: 'Dashboard',
+  isMobileMenuOpen: false,
   utterances: mockInitialUtterances,
   interimTranscript: '',
   isRecording: false,
@@ -58,14 +61,16 @@ export const useConsultationStore = create<ConsultationState>((set) => ({
   setIsReplying: (value) => set({ isReplying: value }),
   setInsights: (insights) => set({ insights }),
   setIsAnalyzing: (value) => set({ isAnalyzing: value }),
-  setActiveTab: (tab) => set({ activeTab: tab }),
+  setActiveTab: (tab) => set({ activeTab: tab, isMobileMenuOpen: false }), // Auto close on navigation
+  setIsMobileMenuOpen: (isOpen) => set({ isMobileMenuOpen: isOpen }),
   setError: (error) => set({ error }),
   reset: () => set({
     utterances: [],
     interimTranscript: '',
     isRecording: false,
     insights: null,
+    isReplying: false,
     isAnalyzing: false,
-    error: null,
+    error: null
   }),
 }));

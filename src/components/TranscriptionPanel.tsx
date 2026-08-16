@@ -26,9 +26,20 @@ export default function TranscriptionPanel() {
   const setIsReplying = useConsultationStore((s) => s.setIsReplying);
   const appendUtterance = useConsultationStore((s) => s.appendUtterance);
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const lastRepliedToId = useRef<string | null>(null);
+
+  // Auto-scroll to bottom
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [utterances, interimTranscript, isReplying]);
+
   useEffect(() => {
     const lastUtt = utterances[utterances.length - 1];
-    if (lastUtt && lastUtt.speaker === 'HCP' && !isReplying) {
+    if (lastUtt && lastUtt.speaker === 'HCP' && !isReplying && lastRepliedToId.current !== lastUtt.id) {
+      lastRepliedToId.current = lastUtt.id;
       setIsReplying(true);
       const transcriptHistory = utterances.map(u => `${u.speaker}: ${u.text}`).join('\n');
       
@@ -67,7 +78,7 @@ export default function TranscriptionPanel() {
 
   return (
     <section className="flex-1 bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col overflow-hidden h-full">
-      <div className="p-4 border-b border-gray-100 flex justify-between items-center pb-4 mb-2">
+      <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-white z-10 shrink-0">
         <div className="flex items-center gap-3">
           <h2 className="font-semibold text-slateNavy">Live Transcription</h2>
           {isRecording && (
@@ -99,64 +110,74 @@ export default function TranscriptionPanel() {
           </button>
         </div>
       </div>
-      <div className="flex-1 p-4 overflow-y-auto space-y-4">
+      <div ref={scrollRef} className="flex-1 p-4 overflow-y-auto space-y-4 scroll-smooth scrollbar-hide">
         {error && <div className="mb-3 text-sm font-medium text-red-600 bg-red-50 p-3 rounded-lg">{error}</div>}
         
-        {utterances.map((utt) => (
-          <div key={utt.id} className="flex gap-3 w-full pr-4">
-            <div className="w-16 shrink-0 flex flex-col items-end pt-1">
-              <span className="text-[10px] font-mono text-slate-400">{formatTimestamp(utt.timestamp)}</span>
-              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                utt.speaker === 'HCP' ? 'bg-teal-100 text-deepTeal' : 
-                utt.speaker === 'PATIENT' ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-700'
-              }`}>
-                {utt.speaker}
-              </span>
-            </div>
-            <div className="flex-1 text-sm text-slateNavy leading-relaxed">
-              {utt.text}
-              {utt.flags && (
-                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
-                  ⚠️ {utt.flags.replace('_', ' ')}
-                </span>
-              )}
-            </div>
-          </div>
-        ))}
+        <div className="flex flex-col space-y-4">
+          {utterances.map((utt) => {
+            const isSystem = utt.speaker === 'SYSTEM';
+            return (
+              <div key={utt.id} className={`flex w-full ${isSystem ? 'justify-start' : 'justify-end'}`}>
+                <div className={`max-w-[85%] md:max-w-[75%] flex flex-col ${isSystem ? 'items-start' : 'items-end'}`}>
+                  <div className="flex items-center gap-2 mb-1 px-1">
+                    <span className={`text-[10px] font-bold ${isSystem ? 'text-slate-500' : 'text-teal-700'}`}>
+                      {utt.speaker}
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-400">{formatTimestamp(utt.timestamp)}</span>
+                  </div>
+                  
+                  <div className={`relative px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-md break-words whitespace-pre-wrap ${
+                    isSystem 
+                      ? 'bg-slate-100 text-slate-700 rounded-tl-sm border border-gray-200/60' 
+                      : 'bg-white text-slateNavy rounded-tr-sm border border-teal-100/50'
+                  }`}>
+                    {utt.text}
+                    {utt.flags && (
+                      <div className="mt-2 inline-flex items-center px-2 py-1 rounded bg-red-500 text-white text-[10px] font-bold tracking-wide shadow-sm border border-red-600">
+                        ⚠️ {utt.flags.replace('_', ' ')}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
 
-        {isRecording && interimTranscript && (
-          <div className="flex gap-3 w-full pr-4 opacity-50">
-            <div className="w-16 shrink-0 flex flex-col items-end pt-1">
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">
-                ...
-              </span>
+          {isRecording && interimTranscript && (
+            <div className="flex w-full justify-end opacity-60">
+              <div className="max-w-[85%] md:max-w-[75%] flex flex-col items-end">
+                <div className="flex items-center gap-2 mb-1 px-1">
+                  <span className="text-[10px] font-bold text-teal-700">HCP</span>
+                </div>
+                <div className="relative px-4 py-3 rounded-2xl text-sm leading-relaxed bg-white text-slate-500 italic rounded-tr-sm border border-teal-100/50 shadow-md break-words whitespace-pre-wrap">
+                  {interimTranscript}
+                  <span className="ml-1 animate-pulse">...</span>
+                </div>
+              </div>
             </div>
-            <div className="flex-1 text-sm text-slate-500 leading-relaxed italic">
-              {interimTranscript}
-            </div>
-          </div>
-        )}
+          )}
 
-        {isReplying && (
-          <div className="flex gap-3 w-full pr-4 opacity-70">
-            <div className="w-16 shrink-0 flex flex-col items-end pt-1">
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-200 text-slate-700">
-                SYSTEM
-              </span>
+          {isReplying && (
+            <div className="flex w-full justify-start opacity-70">
+              <div className="max-w-[85%] md:max-w-[75%] flex flex-col items-start">
+                <div className="flex items-center gap-2 mb-1 px-1">
+                  <span className="text-[10px] font-bold text-slate-500">SYSTEM</span>
+                </div>
+                <div className="relative px-4 py-4 rounded-2xl bg-slate-100 rounded-tl-sm border border-gray-200/60 shadow-md flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
+                  <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
+                  <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></span>
+                </div>
+              </div>
             </div>
-            <div className="flex-1 text-sm text-slate-500 leading-relaxed flex items-center gap-1 pt-1">
-              <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
-              <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
-              <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></span>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {utterances.length === 0 && !isRecording && (
           <p className="text-slate-400 text-sm mt-4 text-center">Click "Start" and begin speaking. The clinical transcript will appear here.</p>
         )}
       </div>
-      <div className="p-4 border-t border-gray-100 bg-slate-50">
+      <div className="p-4 border-t border-gray-100 bg-slate-50 shrink-0">
         <button
           onClick={handleAnalyze}
           disabled={isAnalyzing || utterances.length === 0}

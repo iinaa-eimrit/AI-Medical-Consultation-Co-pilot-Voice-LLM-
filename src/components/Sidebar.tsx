@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, FileText, Activity, X } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, BarChart2, X } from 'lucide-react';
 import { useConsultationStore } from '../store/useConsultationStore';
 import { useEffect } from 'react';
 
@@ -6,7 +6,7 @@ const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard' },
   { icon: FileText, label: 'Consultations' },
   { icon: Users, label: 'Patients' },
-  { icon: Activity, label: 'Analytics' },
+  { icon: BarChart2, label: 'Analytics' },
 ];
 
 export default function Sidebar() {
@@ -40,32 +40,40 @@ export default function Sidebar() {
         md:relative md:translate-x-0
         ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
       `}>
-        <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200 shrink-0">
-          <span className="text-xl font-black text-deepTeal tracking-tight">Synthio<span className="text-teal-600 font-semibold">Scribe</span></span>
+        <div className="flex items-center gap-2.5 px-6 h-16 border-b border-gray-200 shrink-0">
+          <img src="/medico_logo.png" alt="MediCo Logo" className="h-7 w-auto object-contain shrink-0" />
+          <span className="text-2xl tracking-tight flex items-center">
+            <span className="font-extrabold text-slate-800">Medi</span>
+            <span className="font-extrabold text-teal-600">Co</span>
+          </span>
           <button 
-            className="md:hidden p-1 text-slate-400 hover:bg-slate-100 rounded-lg"
+            className="md:hidden p-1 ml-auto text-slate-400 hover:bg-slate-100 rounded-lg"
             onClick={() => setIsMobileMenuOpen(false)}
           >
             <X className="w-5 h-5" />
           </button>
         </div>
-      <nav className="flex-1 py-4">
-        {navItems.map((item) => (
-          <button
-            key={item.label}
-            onClick={() => setActiveTab(item.label)}
-            className={`w-full flex items-center gap-3 px-6 py-2.5 text-sm font-medium ${
-              activeTab === item.label
-                ? 'bg-teal-50 text-deepTeal'
-                : 'text-slate-500 hover:bg-slate-50 hover:text-slateNavy'
-            }`}
-          >
-            <item.icon className="w-5 h-5" />
-            {item.label}
-          </button>
-        ))}
-      </nav>
-    </aside>
+        <nav className="flex-1 py-4 space-y-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.label;
+            return (
+              <button
+                key={item.label}
+                onClick={() => setActiveTab(item.label)}
+                className={`w-full flex items-center gap-3 px-6 py-3 text-sm font-medium transition-all border-l-4 ${
+                  isActive 
+                    ? 'bg-teal-50/50 text-teal-700 border-teal-600' 
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700 border-transparent'
+                }`}
+              >
+                <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
+                {item.label}
+              </button>
+            );
+          })}
+        </nav>
+      </aside>
     </>
   );
 }

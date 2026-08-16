@@ -48,7 +48,7 @@ export default function Header() {
           aria-label="Notifications"
         >
           <Bell className="w-5 h-5 text-gray-500" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white animate-pulse"></span>
         </button>
 
         {isOpen && (

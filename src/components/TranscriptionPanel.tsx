@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { useClinicalAudioStream } from '../hooks/useClinicalAudioStream';
 import { useConsultationStore } from '../store/useConsultationStore';
-import { Mic, MicOff, RotateCcw, Sparkles, Loader2, ShieldCheck } from 'lucide-react';
+import { Mic, MicOff, RotateCcw, FileCog, Loader2, ShieldCheck } from 'lucide-react';
 import { extractInsights, generateSystemReply } from '../lib/gemini';
 import { v4 as uuidv4 } from 'uuid';
+import { Button } from '@/components/ui/button';
 
 function formatTimestamp(ms: number) {
   const totalSeconds = Math.floor(ms / 1000);
@@ -90,27 +91,27 @@ export default function TranscriptionPanel() {
           )}
         </div>
         <div className="flex gap-2">
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={reset}
-            className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
+            className="text-slate-500"
             title="Clear transcript"
             aria-label="Clear transcript"
           >
             <RotateCcw className="w-5 h-5" />
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={isRecording ? stop : start}
-            aria-label={isRecording ? 'Stop Recording' : 'Start Recording'}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors ${
-              isRecording ? 'bg-red-600 hover:bg-red-700' : 'bg-teal-700 hover:bg-teal-800'
-            }`}
+            variant={isRecording ? "destructive" : "default"}
+            className={!isRecording ? "bg-teal-700 hover:bg-teal-800 text-white" : ""}
           >
-            {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+            {isRecording ? <MicOff className="w-4 h-4 mr-2" /> : <Mic className="w-4 h-4 mr-2" />}
             {isRecording ? 'Stop' : 'Start'}
-          </button>
+          </Button>
         </div>
       </div>
-      <div ref={scrollRef} className="flex-1 p-4 overflow-y-auto space-y-4 scroll-smooth scrollbar-hide">
+      <div ref={scrollRef} className="flex-1 p-4 pb-24 overflow-y-auto space-y-4 scroll-smooth scrollbar-hide">
         {error && <div className="mb-3 text-sm font-medium text-red-600 bg-red-50 p-3 rounded-lg">{error}</div>}
         
         <div className="flex flex-col space-y-4">
@@ -178,22 +179,19 @@ export default function TranscriptionPanel() {
         )}
       </div>
       <div className="p-4 border-t border-gray-100 bg-slate-50 shrink-0">
-        <button
-          onClick={handleAnalyze}
-          disabled={isAnalyzing || utterances.length === 0}
-          aria-label="Extract Clinical Insights"
-          className={`w-full py-3 rounded-lg font-semibold text-center flex items-center justify-center gap-2 text-white transition-all shadow-sm ${
-            isAnalyzing || utterances.length === 0
-              ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-              : 'bg-teal-700 hover:bg-teal-800'
-          }`}
-        >
-          {isAnalyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-          {isAnalyzing ? 'Processing AI Models...' : 'Extract Clinical Insights'}
-        </button>
-        <div className="flex justify-center items-center gap-1 mt-3 text-[10px] text-slate-400 font-medium tracking-wide">
-          <ShieldCheck className="w-3 h-3" />
-          HIPAA COMPLIANT ENVIRONMENT
+        <div className="flex flex-col items-center gap-2">
+          <Button
+            onClick={handleAnalyze}
+            disabled={isAnalyzing || utterances.length === 0}
+            className="w-full py-6 text-base font-semibold bg-teal-700 hover:bg-teal-800 text-white shadow-sm"
+          >
+            {isAnalyzing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileCog className="w-4 h-4 mr-2" />}
+            {isAnalyzing ? 'Processing AI Models...' : 'Extract Clinical Insights'}
+          </Button>
+          <div className="flex items-center text-[10px] text-slate-400 font-medium tracking-wide">
+            <ShieldCheck className="w-3 h-3 mr-1" />
+            HIPAA COMPLIANT ENVIRONMENT
+          </div>
         </div>
       </div>
     </section>

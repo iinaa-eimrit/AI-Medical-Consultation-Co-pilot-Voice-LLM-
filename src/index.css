@@ -18,18 +18,27 @@ body {
   color: #0F172A;
 }
 
-/* Custom Scrollbar Styles */
-.scrollbar-hide {
+/* Global Custom Scrollbar Styles */
+* {
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
 }
-.scrollbar-hide::-webkit-scrollbar {
+::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
-.scrollbar-hide::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-thumb {
   background-color: #cbd5e1;
   border-radius: 9999px;
 }
-.scrollbar-hide::-webkit-scrollbar-track {
+::-webkit-scrollbar-track {
   background: transparent;
+}
+/* Utility to completely hide scrollbar if needed */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

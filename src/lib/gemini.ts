@@ -21,7 +21,7 @@ export async function extractInsights(transcript: string): Promise<ClinicalInsig
     throw new Error('VITE_GEMINI_API_KEY is not set. Copy .env.example to .env.local and add your key.');
   }
 
-  const prompt = `You are an AI assistant built for SynthioLabs, analyzing a highly compliant, clinical-grade medical transcription.
+  const prompt = `You are an AI assistant built for MediCo, analyzing a highly compliant, clinical-grade medical transcription.
 Extract structured information from the following consultation transcript. 
 Return ONLY a valid JSON object matching the following structure exactly (no markdown formatting outside of a JSON block):
 {

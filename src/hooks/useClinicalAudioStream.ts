@@ -26,7 +26,6 @@ export function useClinicalAudioStream() {
     recognition.lang = 'en-US';
 
     recognition.onstart = () => {
-      console.log("[Web Speech API] Started listening...");
     };
 
     recognition.onresult = (event: any) => {
@@ -41,14 +40,12 @@ export function useClinicalAudioStream() {
           interimTranscript += transcript;
         }
       }
-      
-      console.log("[Web Speech API] Result received:", { interimTranscript, finalTranscript });
 
       if (finalTranscript.trim()) {
         const timestamp = Date.now() - startTimeRef.current;
         const utterance: TranscriptUtterance = {
           id: uuidv4(),
-          speaker: 'HCP', // Defaulting to HCP for demo
+          speaker: 'HCP',
           text: finalTranscript.trim(),
           timestamp
         };
@@ -58,18 +55,15 @@ export function useClinicalAudioStream() {
     };
 
     recognition.onerror = (event: any) => {
-      console.error("[Web Speech API] Error:", event.error);
       if (event.error === 'not-allowed') {
         setError('Microphone access blocked. Please click the lock icon in your browser address bar and allow microphone access.');
       } else if (event.error === 'no-speech') {
-        // Just ignore no-speech, it happens if the room is quiet.
       } else {
         setError(`Microphone Error: ${event.error}.`);
       }
     };
 
     recognition.onend = () => {
-      console.log("[Web Speech API] Stopped listening.");
       setIsRecording(false);
     };
 
@@ -87,7 +81,6 @@ export function useClinicalAudioStream() {
     try {
       recognitionRef.current?.start();
     } catch (e) {
-      console.error("Failed to start recognition:", e);
     }
   };
 

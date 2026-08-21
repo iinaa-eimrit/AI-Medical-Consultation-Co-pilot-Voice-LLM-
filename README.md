@@ -12,6 +12,7 @@
   - Prescribed Medications & Dosages
   - Adverse Events & Risk Stratification Flags
   - Automated Action Items
+- **Self-Healing Agent Orchestrator**: Moving beyond standard API wrappers, this project utilizes a custom graph-like orchestration loop. It relies on strict **Zod AST schema validation** to intercept LLM hallucinations (e.g. missing JSON keys), dynamically generating deterministic feedback reports and re-prompting the LLM to self-correct in real-time, preventing silent graph termination.
 - **Enterprise-Grade UI**: Built on a highly customized, accessible foundation using **Tailwind CSS v4** and **Shadcn UI**. The interface strictly adheres to clean data-ink ratios and semantic iconography (Lucide React) to guarantee clinical trust.
 - **Robust State Management**: Utilizes **Zustand** for seamless, globally synced patient and consultation state across the entire dashboard.
 
@@ -23,6 +24,7 @@
 - **UI Primitives**: Shadcn UI + Radix UI
 - **Icons**: Lucide React
 - **State Management**: Zustand
+- **Schema Validation / AST**: Zod
 - **AI Processing**: Google Gemini AI (NLP & Entity Extraction)
 
 ## 💻 Local Setup & Installation
@@ -59,7 +61,8 @@ To run this project locally, follow these steps:
 - Voice transcription utilizes the browser's native engine. Ensure microphone permissions are explicitly granted.
 
 ## 📐 Design Philosophy
-- **No "Magic Wands"**: Clinical data requires trust. We utilize deterministic, universally understood semantic icons instead of AI sparkles.
+- **Autonomous Resiliency**: Built to run deterministically. If an agent formats a clinical quote incorrectly, it doesn't crash silently—it catches the error, realizes its mistake, and explicitly routes the Zod error back into the LLM's context window to fix the schema on the fly.
+- **No "Magic Wands"**: Clinical data requires trust. We utilize deterministic, universally understood semantic icons instead of AI sparkles. Live UI telemetry visually traces the orchestrator's state (e.g., *“Schema validation failed. Agent self-correcting (Attempt 2/3)...”*) rather than obfuscating operations behind a generic loader.
 - **Horizontal Scaling**: Patient cards and consultation tables are built with robust flexbox/grid constraints, ensuring layout integrity regardless of varying medical data string lengths.
 
 ---

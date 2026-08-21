@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { ClinicalInsights } from '../types/clinical';
+import { useConsultationStore } from '../store/useConsultationStore';
 
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 const modelName = import.meta.env.VITE_GEMINI_MODEL || 'gemini-1.5-pro';
@@ -54,12 +55,16 @@ Return ONLY a valid JSON object matching the following structure exactly (no mar
 Transcript:
 ${transcript}`;
 
+  const setAgentState = useConsultationStore.getState().setAgentState;
+  
   const MAX_RETRIES = 3;
   let currentPrompt = basePrompt;
   const model = genAI.getGenerativeModel({ model: modelName });
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     console.log(`[Orchestrator] Schema Extraction: Attempt ${attempt}/${MAX_RETRIES}`);
+    setAgentState(attempt === 1 ? 'Analyzing clinical transcript...' : `Schema validation failed. Agent self-correcting (Attempt ${attempt}/3)...`);
+    
     try {
       const result = await model.generateContent(currentPrompt);
       const response = await result.response;
@@ -70,6 +75,7 @@ ${transcript}`;
       
       if (validationResult.success) {
         console.log(`[Orchestrator] Attempt ${attempt} Success. Graph Node Terminated Safely.`);
+        setAgentState(null);
         return validationResult.data as ClinicalInsights;
       } else {
         console.warn(`[Validator Node] Attempt ${attempt} failed schema validation:`, validationResult.error.issues);
@@ -88,6 +94,7 @@ ${transcript}`;
   }
 
   console.error("[Orchestrator] Graph execution halted. Maximum retries exceeded. Falling back to safe state.");
+  setAgentState(null);
   return {
     entities: [],
     actionItems: [],

@@ -10,6 +10,7 @@ interface ConsultationState {
   isReplying: boolean;
   insights: ClinicalInsights | null;
   isAnalyzing: boolean;
+  agentState: string | null;
   error: string | null;
   appendUtterance: (utterance: TranscriptUtterance) => void;
   setInterimTranscript: (text: string) => void;
@@ -17,6 +18,7 @@ interface ConsultationState {
   setIsReplying: (value: boolean) => void;
   setInsights: (insights: ClinicalInsights | null) => void;
   setIsAnalyzing: (value: boolean) => void;
+  setAgentState: (state: string | null) => void;
   setError: (error: string | null) => void;
   setActiveTab: (tab: string) => void;
   setIsMobileMenuOpen: (isOpen: boolean) => void;
@@ -54,6 +56,7 @@ export const useConsultationStore = create<ConsultationState>((set) => ({
   isReplying: false,
   insights: null,
   isAnalyzing: false,
+  agentState: null,
   error: null,
   appendUtterance: (utterance) => set((state) => ({ utterances: [...state.utterances, utterance] })),
   setInterimTranscript: (text) => set({ interimTranscript: text }),
@@ -61,6 +64,7 @@ export const useConsultationStore = create<ConsultationState>((set) => ({
   setIsReplying: (value) => set({ isReplying: value }),
   setInsights: (insights) => set({ insights }),
   setIsAnalyzing: (value) => set({ isAnalyzing: value }),
+  setAgentState: (state) => set({ agentState: state }),
   setActiveTab: (tab) => set({ activeTab: tab, isMobileMenuOpen: false }), // Auto close on navigation
   setIsMobileMenuOpen: (isOpen) => set({ isMobileMenuOpen: isOpen }),
   setError: (error) => set({ error }),
@@ -71,6 +75,7 @@ export const useConsultationStore = create<ConsultationState>((set) => ({
     insights: null,
     isReplying: false,
     isAnalyzing: false,
+    agentState: null,
     error: null
   }),
 }));

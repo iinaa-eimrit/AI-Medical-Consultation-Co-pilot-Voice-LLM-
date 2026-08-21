@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 export default function InsightsPanel() {
   const insights = useConsultationStore((s) => s.insights);
   const isAnalyzing = useConsultationStore((s) => s.isAnalyzing);
+  const agentState = useConsultationStore((s) => s.agentState);
   const { displayedText: summaryText, isTyping } = useTypewriter(insights?.summary || null, 15);
   
   const [checkedItems, setCheckedItems] = useState<Set<number>>(new Set());
@@ -28,7 +29,14 @@ export default function InsightsPanel() {
       <Card className="h-full border-gray-200 shadow-sm overflow-hidden rounded-xl">
         <CardContent className="p-4">
           <div className="space-y-6">
-            <Skeleton className="h-6 w-1/2" />
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-6 w-1/2" />
+              {agentState && (
+                <div className="text-xs font-mono text-teal-600 bg-teal-50 px-2 py-1 rounded animate-pulse w-fit border border-teal-100">
+                  {agentState}
+                </div>
+              )}
+            </div>
             <div className="space-y-3">
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-5/6" />
